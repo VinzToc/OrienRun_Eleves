@@ -3,6 +3,6 @@
    elle chiffre la base de balises et les fichiers de course. Si vous la modifiez plus tard,
    les anciens fichiers deviennent illisibles. */
 window.ORUN_CONFIG = {
-  secret: 'orienrun-CHANGEZ-MOI',
+  secret: 'orienrun-IbicibuS-MADORIBUS-mon pass tu ne le trouveras-pas',
   seuilGPS: 5   // distance maximale (m) entre l'élève et la balise, valeur par défaut d'une nouvelle base
 };
