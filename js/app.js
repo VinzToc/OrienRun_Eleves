@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const O = window.ORUN, $ = id => document.getElementById(id);
-  const VERSION = '2.1';
+  const VERSION = '2.3';
   const LS = { base: 'orun_base_pack', run: 'orun_run', id: 'orun_identite' };
   let base = null, run = null, cur = 0, gps = { watch: null, fixes: [], last: null }, clockT = null, wake = null, map = null;
 
@@ -58,13 +58,24 @@
   function readPartners() {
     return [].map.call($('partners').children, d => ({ nom: d.querySelector('.pn').value.trim(), prenom: d.querySelector('.pp').value.trim(), classe: d.querySelector('.pc').value.trim() })).filter(p => p.nom || p.prenom);
   }
-  function saveIdent() { lsSet(LS.id, { nom: $('fNom').value, prenom: $('fPrenom').value, classe: $('fClasse').value, groupe: $('fGroupe').value, partenaires: readPartners() }); }
+  function saveIdent() { lsSet(LS.id, { groupe: $('fGroupe').value, partenaires: readPartners() }); }
   function loadIdent() {
     const i = lsGet(LS.id) || {};
-    $('fNom').value = i.nom || ''; $('fPrenom').value = i.prenom || ''; $('fClasse').value = i.classe || ''; $('fGroupe').value = i.groupe || '';
+    $('fGroupe').value = i.groupe || '';
     (i.partenaires || []).forEach(p => $('partners').appendChild(partnerRow(p)));
-    ['fNom', 'fPrenom', 'fClasse', 'fGroupe'].forEach(id => $(id).addEventListener('input', saveIdent));
+    $('fGroupe').addEventListener('input', saveIdent);
   }
+  /* identité de l'élève : saisie une seule fois sur le portail Applis EPS Élèves, lue ici */
+  let eleve = null;
+  async function initEleve() {
+    try { eleve = await ELEVE.courant(); } catch (e) { eleve = null; }
+    $('eleveCard').innerHTML = eleve
+      ? '👤 <b>' + esc(eleve.prenom + ' ' + eleve.nom.toUpperCase()) + '</b>' + (eleve.classe ? ' · ' + esc(eleve.classe) : '') + ' <a href="https://vinztoc.github.io/Applis_EPS_Eleves/" style="margin-left:8px;color:var(--c1)">changer</a>'
+      : '⚠ <b>Non identifié</b> · rien ne sera enregistré. <a href="https://vinztoc.github.io/Applis_EPS_Eleves/" style="color:var(--c1)">M\'identifier sur le portail</a>';
+    return eleve;
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) initEleve(); });
+  window.addEventListener('focus', initEleve);
   $('addPartner').onclick = () => { const r = partnerRow(); $('partners').appendChild(r); r.querySelector('.pn').focus(); };
 
   /* ---------- GPS ---------- */
@@ -90,11 +101,11 @@
 
   /* ---------- Départ ---------- */
   $('fDate').value = new Date().toISOString().slice(0, 10);
-  $('btnDepart').onclick = () => {
+  $('btnDepart').onclick = async () => {
     const err = $('homeErr'); err.textContent = '';
-    const nom = $('fNom').value.trim(), prenom = $('fPrenom').value.trim(), classe = $('fClasse').value.trim();
+    await initEleve();
+    const nom = eleve ? eleve.nom : 'Anonyme', prenom = eleve ? eleve.prenom : '', classe = eleve ? eleve.classe : '';
     if (!base) return err.textContent = 'Importe d\'abord la base de balises fournie par ton professeur.';
-    if (!nom || !prenom || !classe) return err.textContent = 'Renseigne ton nom, ton prénom et ta classe.';
     const p = base.parcours.find(x => x.id === $('fParcours').value);
     if (!p) return err.textContent = 'Choisis ton parcours.';
     const bals = O.parcoursDetail(base, p);
@@ -102,7 +113,7 @@
     const carte = base.cartes.find(c => c.id === p.carteId) || {};
     saveIdent();
     run = {
-      v: 1, id: O.uid(), eleve: { nom, prenom, classe }, partenaires: readPartners(), groupe: $('fGroupe').value.trim(),
+      v: 1, id: O.uid(), eleveId: eleve ? eleve.id : null, eleve: { nom, prenom, classe }, partenaires: readPartners(), groupe: $('fGroupe').value.trim(),
       date: $('fDate').value, baseId: base.id, baseNom: base.nom,
       parcours: { code: p.code, nom: p.nom, carteNom: carte.nom || '', carteRef: carte.ref || '' },
       seuil: base.seuilGPS || O.CFG.seuilGPS || 5, departTs: Date.now(), arriveeTs: null,
@@ -236,6 +247,7 @@
       return '<tr><td>' + b.rang + '</td><td><b>' + esc(b.identifiant) + '</b></td><td class="st ' + b.statut + '">' + LBL[b.statut] + '</td><td>' + (b.tempsInter != null ? O.fmtDur(b.tempsInter) : '—') + '</td><td>' + d + '</td></tr>';
     }).join('');
     setTimeout(drawMap, 50);
+    saveToPortal();
   }
   function drawMap() {
     if (map) { map.remove(); map = null; }
@@ -245,11 +257,46 @@
       const pts = [];
       const ref = run.balises.map(b => [b.lat, b.lon]);
       L.polyline(ref, { color: '#fff', weight: 2, dashArray: '6 6', opacity: .8 }).addTo(map); pts.push.apply(pts, ref);
-      if (run.trace.length > 1) { const tr = run.trace.map(p => [p[0], p[1]]); L.polyline(tr, { color: '#FF6B00', weight: 4 }).addTo(map); pts.push.apply(pts, tr); }
+      if (run.trace.length > 1) { const tr = run.trace.map(p => [p[0], p[1]]); L.polyline(tr, { color: '#F06000', weight: 4 }).addTo(map); pts.push.apply(pts, tr); }
       run.balises.forEach(b => L.marker([b.lat, b.lon], { icon: L.divIcon({ className: '', iconSize: [26, 26], html: '<div style="width:26px;height:26px;border-radius:50%;background:' + (b.statut === 'valide' ? '#22e58b' : '#ff5d5d') + ';color:#000;font:800 12px system-ui;display:flex;align-items:center;justify-content:center;border:2px solid #fff">' + b.rang + '</div>' }) }).addTo(map));
       map.fitBounds(pts, { padding: [24, 24] });
     } catch (e) { $('bMap').innerHTML = '<div class="note" style="padding:12px">Carte indisponible hors ligne.</div>'; }
   }
+
+  /* ---------- Mes Applis EPS (portail élèves) ---------- */
+  function ligneEps() {
+    const s = O.statsRun(run), tt = run.arriveeTs && run.departTs ? Math.round((run.arriveeTs - run.departTs) / 1000) : '';
+    const d = new Date(run.departTs), p2 = n => String(n).padStart(2, '0');
+    return {
+      'Date': run.date || d.toISOString().slice(0, 10), 'Départ': p2(d.getHours()) + ':' + p2(d.getMinutes()),
+      'Parcours': run.parcours.code + (run.parcours.nom ? ' – ' + run.parcours.nom : ''), 'Carte': run.parcours.carteNom || '',
+      'Temps': O.fmtDur(tt), 'Temps (s)': tt, 'Balises validées': s.valides + ' / ' + s.total, 'Réussite %': s.taux,
+      'Erreurs de code': s.errCode, 'Erreurs de position': s.errPos, 'Non pointées': s.nonPointees,
+      'Distance parcourue (m)': s.distTrace ? Math.round(s.distTrace) : '',
+      'Équipe': (run.partenaires || []).map(O.identiteTxt).join(' ; '), 'Groupe': run.groupe || '',
+      'Détail balises': run.balises.map(b => b.identifiant + ' ' + (O.STATUTS[b.statut] || '') + (b.tempsInter != null ? ' (' + O.fmtDur(b.tempsInter) + ')' : '')).join(' ; ')
+    };
+  }
+  async function saveToPortal() {
+    const el = $('epsStatut'), bt = $('btnExportEps');
+    if (!run || !run.arriveeTs) return;
+    if (!run.eleveId) { el.textContent = 'ℹ️ Course sans identification : rien n\'est enregistré dans Applis EPS. Identifie-toi sur le portail avant le départ. (Tu peux toujours exporter le fichier OrienRun ci-dessous.)'; bt.disabled = true; return; }
+    try { await EPS.addLigne('orienrun', run.eleveId, ligneEps()); el.textContent = '✅ Course enregistrée sur cet appareil (Applis EPS Élèves). Exporte le fichier .xlsx pour le remettre à ton professeur.'; bt.disabled = false; }
+    catch (e) { el.textContent = '⚠ Enregistrement impossible : ' + e.message; bt.disabled = true; }
+  }
+  $('btnExportEps').onclick = async () => {
+    try {
+      const e = (await ELEVE.courant()) || { id: run && run.eleveId };
+      if (!e.id) return toast('Identifie-toi sur le portail pour exporter.');
+      const nm = run && run.eleve ? O.slug(run.eleve.nom + '_' + run.eleve.prenom) : 'eleve';
+      EPS.downloadXLSX(await EPS.exportXLSX({ ids: [e.id], apps: ['orienrun'], sansEleves: true }), 'OrienRun_AppliEPS_' + nm + '.xlsx');
+    } catch (err) { toast('Erreur d\'export : ' + err.message, 5000); }
+  };
+  $('btnEffacer').onclick = async () => {
+    if (!confirm('⚠ Pense à exporter ton fichier .xlsx avant d\'effacer !\n\nToutes tes courses OrienRun enregistrées sur cet appareil (Applis EPS Élèves) seront supprimées définitivement.')) return;
+    const ok = await ELEVE.effacerApp('orienrun'); toast(ok ? 'Données OrienRun effacées.' : 'Aucune donnée OrienRun à effacer.');
+    if (ok) { $('epsStatut').textContent = 'Données effacées.'; $('btnExportEps').disabled = true; }
+  };
 
   /* ---------- Export ---------- */
   function fileName() {
@@ -277,7 +324,7 @@
   /* ---------- Démarrage ---------- */
   (async function init() {
     ORUN_UPDATE.mount($('verBox'), VERSION);
-    loadIdent(); await loadBaseFromStorage(); renderBase();
+    loadIdent(); await initEleve(); await loadBaseFromStorage(); renderBase();
     const saved = lsGet(LS.run);
     if (saved && saved.balises) {
       run = saved;

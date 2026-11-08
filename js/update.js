@@ -16,12 +16,18 @@
       } catch (e) { if (!silent) msg.textContent = 'Vérification impossible (hors ligne ou fichier version.json absent).'; }
     }
     async function install() {
-      msg.textContent = 'Mise à jour…';
+      msg.textContent = 'Mise à jour en cours…'; btn.disabled = true;
       try {
+        // 1) liste des fichiers de l'appli (lue dans sw.js), rechargés en contournant le cache du navigateur
+        const sw = await (await fetch('sw.js?_=' + Date.now(), { cache: 'no-store' })).text();
+        const m = /SHELL\s*=\s*\[([^\]]*)\]/.exec(sw);
+        const fichiers = m ? m[1].split(',').map(x => x.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean) : [];
+        await Promise.all(fichiers.map(f => fetch(f, { cache: 'reload' }).catch(() => { })));
+        // 2) on retire l'ancien service worker et les anciens caches
         if (navigator.serviceWorker) { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(x => x.unregister())); }
         if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
       } catch (e) { }
-      location.reload();
+      location.replace(location.pathname + '?maj=' + Date.now());
     }
     btn.onclick = () => check(false);
     check(true);

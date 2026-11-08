@@ -1,6 +1,6 @@
 /* base.css – composants communs OrienRun (glassmorphism). Les couleurs viennent du thème de chaque appli. */
-:root{--bg:#0b0b0d;--tx:#f5f5f5;--mut:rgba(255,255,255,.55);--ok:#22e58b;--ko:#ff5d5d;--wa:#ffb020;
-  --glass:rgba(255,255,255,.06);--bd:rgba(255,255,255,.14);--c1:#FF6B00;--c2:#FFD600;--g1:rgba(255,107,0,.22);--g2:rgba(255,214,0,.14)}
+:root{--bg:#06140f;--tx:#f5f5f5;--mut:rgba(255,255,255,.55);--ok:#22e58b;--ko:#ff5d5d;--wa:#ffb020;
+  --glass:rgba(255,255,255,.06);--bd:rgba(255,255,255,.14);--c1:#27d96b;--c2:#1ea7e8;--ac:#F06000;--g1:rgba(39,217,107,.22);--g2:rgba(30,167,232,.16)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
 body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;min-height:100dvh;line-height:1.4}
@@ -9,8 +9,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
 [hidden]{display:none!important}
 .wrap{max-width:720px;margin:0 auto;padding:14px 12px 48px}
 .top{display:flex;align-items:center;gap:12px;padding:8px 4px 14px}
-.logo{width:46px;height:46px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;
-  background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 0 22px var(--g1)}
+.logo{width:58px;height:58px;border-radius:50%;flex-shrink:0;object-fit:cover;box-shadow:0 0 22px var(--g1),0 0 0 2px rgba(39,217,107,.55)}
 .brand{font-weight:900;font-size:1.5rem;letter-spacing:.08em;text-transform:uppercase;
   background:linear-gradient(90deg,var(--c1),var(--c2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .sub{font-size:.72rem;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}

@@ -1,6 +1,6 @@
 /* Thème élève : orange / jaune sur fond noir (course d'orientation) – les composants communs sont dans base.css */
 .pbadge{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.hero{text-align:center;padding:14px 8px;margin-bottom:12px;border-radius:14px;border:1px solid rgba(255,107,0,.3);background:linear-gradient(135deg,rgba(255,107,0,.15),rgba(255,214,0,.08))}
+.hero{text-align:center;padding:14px 8px;margin-bottom:12px;border-radius:14px;border:1px solid rgba(39,217,107,.35);background:linear-gradient(135deg,rgba(39,217,107,.16),rgba(30,167,232,.10))}
 .hero .lbl{opacity:.6}
 .hero .big{font-weight:900;font-size:3rem;line-height:1;letter-spacing:.04em;background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hero .id{font-weight:800;font-size:1.15rem;margin-top:4px;word-break:break-word}
@@ -24,10 +24,10 @@
 #codeDisp div{width:54px;height:66px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:2.2rem;color:var(--c2);
   background:rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.16)}
 #codeDisp div.on{border-color:var(--c2);box-shadow:0 0 12px var(--g2)}
-#codeDisp div.f{border-color:rgba(255,107,0,.55);background:rgba(255,107,0,.08)}
+#codeDisp div.f{border-color:rgba(39,217,107,.6);background:rgba(39,217,107,.10)}
 .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
 .keys button{padding:15px 0;border-radius:12px;font:inherit;font-weight:900;font-size:1.5rem;color:#fff;background:rgba(255,255,255,.08);border:1.5px solid var(--bd);cursor:pointer;user-select:none}
-.keys button:active{background:rgba(255,214,0,.2);transform:scale(.95)}
+.keys button:active{background:rgba(30,167,232,.25);transform:scale(.95)}
 .keys .del{font-size:1.1rem;color:#ff9d9d}
 /* scanner */
 #scanOv{position:fixed;inset:0;z-index:3000;background:#000;display:flex;flex-direction:column}
@@ -46,3 +46,5 @@
 .st.valide{color:var(--ok)}.st.erreur_code,.st.erreur_position,.st.erreur_gps{color:var(--ko)}.st.non_pointee{color:var(--mut)}
 .partner{display:grid;grid-template-columns:1fr 1fr 70px 38px;gap:6px;margin-bottom:6px}
 @media(max-width:460px){.partner{grid-template-columns:1fr 1fr 38px}.partner .cl{display:none}}
+
+.eleveCard{padding:10px 12px;margin:0 0 10px;border-radius:12px;background:rgba(39,217,107,.10);border:1px solid rgba(39,217,107,.35);font-size:1rem}
