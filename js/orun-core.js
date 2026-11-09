@@ -4,7 +4,7 @@
    - validation d'un pointage (code + distance GPS), statistiques de course */
 (function (root) {
   'use strict';
-  const CFG = root.ORUN_CONFIG || { secret: 'orienrun-CHANGEZ-MOI', seuilGPS: 5 };
+  const CFG = root.ORUN_CONFIG || { secret: 'orienrun-IbicibuS-MADORIBUS-mon pass tu ne le trouveras-pas', seuilGPS: 5 };
   const enc = new TextEncoder(), dec = new TextDecoder();
   const SHEET = 'OrienRun_Data', CHUNK = 30000;
 
