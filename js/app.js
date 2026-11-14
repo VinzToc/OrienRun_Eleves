@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const O = window.ORUN, $ = id => document.getElementById(id);
-  const VERSION = '2.3';
+  const VERSION = '2.4';
   const LS = { base: 'orun_base_pack', run: 'orun_run', id: 'orun_identite' };
   let base = null, run = null, cur = 0, gps = { watch: null, fixes: [], last: null }, clockT = null, wake = null, map = null;
 
