@@ -1,6 +1,6 @@
-const V='orienrun-eleve-v2.3';
+const V='orienrun-eleve-v2.4';
 const SHELL=['./','index.html','config.js','manifest.webmanifest','css/base.css','css/app.css','js/orun-core.js','js/eps-core.js','js/eleve-core.js','js/update.js','js/scanner.js','js/app.js','lib/xlsx.full.min.js','lib/jsQR.js','lib/leaflet/leaflet.js','lib/leaflet/leaflet.css','icons/icon-192.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
+self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.all(SHELL.map(u=>fetch(u,{cache:'reload'}).then(r=>r.ok&&c.put(u,r)).catch(()=>{})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V&&x.startsWith('orienrun-eleve')).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
   const r=e.request; if(r.method!=='GET')return;
@@ -8,5 +8,6 @@ self.addEventListener('fetch',e=>{
   if(u.hostname.endsWith('openstreetmap.org')||u.hostname.endsWith('opentopomap.org')){ // tuiles déjà vues uniquement
     e.respondWith(caches.open(V+'-tiles').then(c=>c.match(r).then(h=>h||fetch(r).then(n=>{c.put(r,n.clone());return n}).catch(()=>h))));return;}
   if(u.origin!==location.origin)return;
-  e.respondWith(fetch(r,{cache:'no-cache'}).then(n=>{const cp=n.clone();caches.open(V).then(c=>c.put(r,cp));return n}).catch(()=>caches.match(r)));
+  const T=2500, net=new Promise((ok,ko)=>{const t=setTimeout(()=>ko(new Error('timeout')),T);fetch(r,{cache:'no-cache'}).then(x=>{clearTimeout(t);ok(x)},er=>{clearTimeout(t);ko(er)})}); // réseau trop lent ou absent : copie hors ligne immédiate
+  e.respondWith(net.then(n=>{if(n.ok){const cp=n.clone();caches.open(V).then(c=>c.put(r,cp))}return n}).catch(()=>caches.match(r,{ignoreSearch:true}).then(h=>h||(r.mode==='navigate'?caches.match('index.html').then(x=>x||caches.match('./')):undefined)||Response.error())));
 });
