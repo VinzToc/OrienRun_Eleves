@@ -1,4 +1,4 @@
-const V='orienrun-eleve-v2.4';
+const V='orienrun-eleve-v2.5';
 const SHELL=['./','index.html','config.js','manifest.webmanifest','css/base.css','css/app.css','js/orun-core.js','js/eps-core.js','js/eleve-core.js','js/update.js','js/scanner.js','js/app.js','lib/xlsx.full.min.js','lib/jsQR.js','lib/leaflet/leaflet.js','lib/leaflet/leaflet.css','icons/icon-192.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.all(SHELL.map(u=>fetch(u,{cache:'reload'}).then(r=>r.ok&&c.put(u,r)).catch(()=>{})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V&&x.startsWith('orienrun-eleve')).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
