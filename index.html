@@ -11,10 +11,19 @@
 <link rel="stylesheet" href="lib/leaflet/leaflet.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/app.css">
+
+<style id="titre-moderne">/* Titre en casse mixte + logo mis en valeur, aux couleurs du logo */
+.top .brand{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;font-style:italic!important;font-weight:900!important;text-transform:none!important;letter-spacing:.005em!important;line-height:1.08;font-size:1.9rem!important;background:none!important;-webkit-text-stroke:0!important;color:#fff!important;-webkit-text-fill-color:#fff!important;text-shadow:0 2px 0 #041a10,0 4px 12px rgba(0,0,0,.45)!important}
+.top .brand .tm{background:linear-gradient(180deg,#ffb36b,#fb6b05 72%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:#fb6b05!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;filter:drop-shadow(0 2px 0 #041a10)}
+.top .brand small,.top .brand em{font-style:normal!important;text-shadow:none!important;-webkit-text-fill-color:currentColor!important}
+.top img.logo{border-radius:50%!important;box-shadow:0 0 0 3px #fb6b05,0 0 22px rgba(39,217,107,.5),0 6px 16px rgba(0,0,0,.4)!important;transition:transform .3s}
+.top img.logo:hover{transform:rotate(-5deg) scale(1.05)}
+@media(max-width:520px){.top .brand{font-size:calc(1.9rem * .8)!important}}
+</style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top" style="position:relative"><a href="https://vinztoc.github.io/Applis_EPS_Eleves/" style="position:absolute;right:6px;top:2px;color:#fff;font-size:.8rem;text-decoration:none;border:1px solid #fff4;border-radius:10px;padding:4px 9px">← Portail</a><img class="logo" src="icons/icon-192.png" alt="Logo OrienRun"><div><div class="brand">OrienRun</div><div class="sub">Course d'orientation · EPS</div></div></div>
+  <div class="top" style="position:relative"><a href="https://vinztoc.github.io/Applis_EPS_Eleves/" style="position:absolute;right:6px;top:2px;color:#fff;font-size:.8rem;text-decoration:none;border:1px solid #fff4;border-radius:10px;padding:4px 9px">← Portail</a><img class="logo" src="icons/icon-192.png" alt="Logo OrienRun"><div><div class="brand">Orien<span class="tm">Run</span></div><div class="sub">Course d'orientation · EPS</div></div></div>
 
   <!-- ===================== ACCUEIL ===================== -->
   <section id="s-home">
