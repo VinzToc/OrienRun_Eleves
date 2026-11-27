@@ -74,8 +74,22 @@
   }
 
   /* ---------- chiffrement ---------- */
+  /* Clé choisie par le professeur (dans OrienRun Admin), transmise aux élèves (saisie ou QR code) et enregistrée sur l'appareil.
+     Sans clé personnelle, l'ancienne clé par défaut de config.js reste utilisée (fichiers existants). */
+  const KEYLS = 'orun_cle_v1';
+  function getKey() { let k = ''; try { k = localStorage.getItem(KEYLS) || ''; } catch (e) { } return k || CFG.secret; }
+  function hasCustomKey() { try { return !!localStorage.getItem(KEYLS); } catch (e) { return false; } }
+  function cleValide(k) { return String(k || '').trim().length >= 10; }
+  function setKey(k) { k = String(k || '').trim(); try { if (k) localStorage.setItem(KEYLS, k); else localStorage.removeItem(KEYLS); } catch (e) { } }
+  function genererCle() {
+    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = crypto.getRandomValues(new Uint8Array(16)); let o = '';
+    for (let i = 0; i < 16; i++) { o += A[r[i] % A.length]; if (i % 4 === 3 && i < 15) o += '-'; } return o;
+  }
+  const KEYQR = 'ORUNKEY1|';
+  function cleVersQr(k) { return KEYQR + String(k).trim(); }
+  function cleDepuisQr(t) { t = String(t || ''); return t.indexOf(KEYQR) === 0 && cleValide(t.slice(KEYQR.length)) ? t.slice(KEYQR.length).trim() : ''; }
   async function deriveKey(salt, secret) {
-    const base = await crypto.subtle.importKey('raw', enc.encode(secret || CFG.secret), 'PBKDF2', false, ['deriveKey']);
+    const base = await crypto.subtle.importKey('raw', enc.encode(secret || getKey()), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, base,
       { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   }
@@ -86,13 +100,15 @@
     return { salt: b64.to(salt), iv: b64.to(iv), data: b64.to(ct) };
   }
   async function decryptJSON(pack, secret) {
-    try {
-      const k = await deriveKey(b64.from(pack.salt), secret);
-      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.from(pack.iv) }, k, b64.from(pack.data));
-      return JSON.parse(dec.decode(pt));
-    } catch (e) {
-      throw new Error('Fichier illisible : clé de chiffrement différente de celle de l\'application, ou fichier modifié.');
+    const essais = [secret || getKey()]; if (!secret && getKey() !== CFG.secret) essais.push(CFG.secret);   // anciens fichiers (clé par défaut)
+    for (const sec of essais) {
+      try {
+        const k = await deriveKey(b64.from(pack.salt), sec);
+        const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.from(pack.iv) }, k, b64.from(pack.data));
+        return JSON.parse(dec.decode(pt));
+      } catch (e) { }
     }
+    const err = new Error('Fichier illisible : la clé de chiffrement enregistrée ne correspond pas à celle du fichier (ou fichier modifié). Vérifie la clé du professeur.'); err.cle = true; throw err;
   }
 
   /* ---------- conteneur .xlsx ---------- */
@@ -193,7 +209,7 @@
 
   root.ORUN = {
     CFG, uid, pad, fmtDur, fmtHeure, slug, haversine, pathLength, qrPayload, parseQr, evaluer, STATUTS, statsRun,
-    encryptJSON, decryptJSON, readPack, readWorkbook, parcoursDetail, baseForStudents, buildBaseWorkbook,
+    getKey, setKey, hasCustomKey, cleValide, genererCle, cleVersQr, cleDepuisQr, encryptJSON, decryptJSON, readPack, readWorkbook, parcoursDetail, baseForStudents, buildBaseWorkbook,
     buildBaseReadableWorkbook, buildRunWorkbook, readRunWorkbook, identiteTxt
   };
   if (typeof module !== 'undefined') module.exports = root.ORUN;

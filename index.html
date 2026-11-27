@@ -29,6 +29,15 @@
   <section id="s-home">
     <h2 class="title">Avant le départ</h2>
 
+    <div class="card flat" id="keyCard">
+      <h3>🔑 Clé du professeur</h3>
+      <div id="keyState" class="note"></div>
+      <div class="row" style="margin-top:8px"><input id="keyIn" autocomplete="off" spellcheck="false" placeholder="Phrase donnée par ton professeur"><button class="btn sm" id="keySave" type="button">Enregistrer</button></div>
+      <div class="row nogrow" style="margin-top:8px"><button class="btn sec sm" id="keyScan" type="button">📷 Scanner le QR de la clé</button></div>
+      <div class="note" style="margin-top:6px">Ton professeur choisit une phrase secrète qui chiffre les fichiers. Saisis-la (ou scanne son QR code) une seule fois : elle reste sur cet appareil.</div>
+      <div class="err" id="keyErr"></div>
+    </div>
+
     <div class="card flat" id="baseCard">
       <h3>📦 Base de référence des balises</h3>
       <div id="baseState" class="note"></div>

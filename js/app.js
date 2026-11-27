@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const O = window.ORUN, $ = id => document.getElementById(id);
-  const VERSION = '2.5';
+  const VERSION = '2.6';
   const LS = { base: 'orun_base_pack', run: 'orun_run', id: 'orun_identite' };
   let base = null, run = null, cur = 0, gps = { watch: null, fixes: [], last: null }, clockT = null, wake = null, map = null;
 
@@ -16,12 +16,31 @@
 
   /* ---------- Base de référence ---------- */
   async function loadBaseFromStorage() {
-    const pack = lsGet(LS.base); if (!pack) return;
-    try { base = await O.decryptJSON(pack); } catch (e) { base = null; lsDel(LS.base); }
+    const pack = lsGet(LS.base); base = null; baseLock = false; if (!pack) return;
+    try { base = await O.decryptJSON(pack); } catch (e) { base = null; if (e && e.cle) baseLock = true; else lsDel(LS.base); }
   }
+  let baseLock = false;
+  function renderKey() {
+    $('keyState').innerHTML = O.hasCustomKey() ? '<span class="chip ok">✔ Clé enregistrée</span>' : '<span class="chip ko">Clé non saisie</span>';
+    
+  }
+  async function appliquerCle(k) {
+    $('keyErr').textContent = '';
+    if (!O.cleValide(k)) { $('keyErr').textContent = '⚠ La phrase doit comporter au moins 10 caractères.'; return false; }
+    O.setKey(String(k).trim()); await loadBaseFromStorage(); renderKey(); renderBase();
+    if (lsGet(LS.base) && !base) { $('keyErr').textContent = '⚠ Cette clé ne permet pas de lire la base : vérifie la phrase auprès de ton professeur.'; return false; }
+    toast('Clé enregistrée ✔'); return true;
+  }
+  $('keySave').onclick = () => appliquerCle($('keyIn').value);
+  $('keyScan').onclick = () => ORUN_SCAN.open({
+    accept: t => !!O.cleDepuisQr(t),
+    onFound: t => { const k = O.cleDepuisQr(t); $('keyIn').value = k; appliquerCle(k); },
+    onCancel: () => { },
+    onManual: () => $('keyIn').focus()
+  });
   function renderBase() {
     const st = $('baseState'), sel = $('fParcours');
-    if (!base) { st.innerHTML = '<span class="chip ko">Aucune base importée</span>'; sel.innerHTML = '<option value="">-- Importe d\'abord la base --</option>'; return; }
+    if (!base) { st.innerHTML = baseLock ? '<span class="chip ko">🔑 Base présente mais illisible : saisis la clé du professeur</span>' : '<span class="chip ko">Aucune base importée</span>'; sel.innerHTML = '<option value="">-- Importe d\'abord la base --</option>'; return; }
     st.innerHTML = '<span class="chip ok">✔ ' + esc(base.nom || 'Base') + '</span> <span class="note">' + base.parcours.length + ' parcours · ' + base.balises.length + ' balises</span>';
     const cartes = base.cartes.slice().sort((a, b) => (a.numero || 0) - (b.numero || 0));
     let h = '<option value="">-- Choisis ton parcours --</option>';
@@ -39,7 +58,7 @@
     $('baseErr').textContent = '';
     try {
       const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
-      const r = await O.readWorkbook(XLSX, wb, ['BASE']);
+      let r; try { r = await O.readWorkbook(XLSX, wb, ['BASE']); } catch (err) { if (err && err.cle) { lsSet(LS.base, O.readPack(XLSX, wb).pack); baseLock = true; base = null; renderBase(); } throw err; }
       if (!r.data.parcours || !r.data.balises) throw new Error('Base vide ou invalide.');
       lsSet(LS.base, O.readPack(XLSX, wb).pack); base = r.data; renderBase(); toast('Base importée ✔');
     } catch (err) { $('baseErr').textContent = '⚠ ' + (err.message || err); }
@@ -324,7 +343,7 @@
   /* ---------- Démarrage ---------- */
   (async function init() {
     ORUN_UPDATE.mount($('verBox'), VERSION);
-    loadIdent(); await initEleve(); await loadBaseFromStorage(); renderBase();
+    loadIdent(); await initEleve(); await loadBaseFromStorage(); renderKey(); renderBase();
     const saved = lsGet(LS.run);
     if (saved && saved.balises) {
       run = saved;

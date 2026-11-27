@@ -1,5 +1,13 @@
 [
  {
+  "v": "2.6",
+  "date": "2026-11-27",
+  "items": [
+   "Clé du professeur : saisis la phrase secrète de ton professeur (ou scanne son QR code) une seule fois, elle est mémorisée sur l'appareil.",
+   "Si la clé est absente ou erronée, la base importée est conservée et n'est plus effacée."
+  ]
+ },
+ {
   "v": "2.5",
   "date": "2026-11-23",
   "items": [
